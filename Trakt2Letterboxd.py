@@ -5,6 +5,7 @@ import json
 import time
 import csv
 import os.path
+import requests
 
 
 class TraktImporter(object):
@@ -126,6 +127,9 @@ class TraktImporter(object):
             'trakt-api-key': self.api_clid
         }
 
+        ratings = requests.get(f"https://api.trakt.tv/sync/ratings/movies/10,9,8,7,6,5,4,3,2,1", headers=headers)
+        ratings = json.loads(ratings.text)
+
         extracted_movies = []
         page_limit = 1
         page = 1
@@ -141,8 +145,15 @@ class TraktImporter(object):
                 page = page + 1
 
                 response_body = response.read()
-                if response_body:
-                    extracted_movies.extend(self.__extract_fields(json.loads(response_body)))
+                data = json.loads(response_body)
+                for i in range(len(data)):
+                    id_i = data[i]['movie']['ids']['trakt']
+                    for j in range(len(ratings)):
+                        id_j = ratings[j]['movie']['ids']['trakt']
+                        if id_i == id_j:
+                            data[i]['rating'] = ratings[j]['rating']
+
+                    extracted_movies.extend(self.__extract_fields(data))
             except HTTPError as err:
                 if err.code == 401 or err.code == 403:
                     print("Auth Token has expired.")
@@ -160,6 +171,7 @@ class TraktImporter(object):
             'imdbID': x['movie']['ids']['imdb'],
             'Title': x['movie']['title'],
             'Year': x['movie']['year'],
+            'Rating10' : x["rating"] if ('rating' in x) else '',
             } for x in movies]
 
 def write_csv(history, filename):
