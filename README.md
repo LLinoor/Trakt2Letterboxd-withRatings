@@ -1,4 +1,7 @@
 # Trakt2Letterboxd
+## Fork :
+ - Export ratings from Trakt and add it to .csv file
+<hr/>
 This is a simple cross-platform script to export your movies in Trakt to Letterboxd.
 
 You require Python 3.x installed for this to run. To install Python please follow the instructions at the [official Python website](https://www.python.org/downloads/).<sup>1</sup>
